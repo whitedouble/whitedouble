@@ -1,0 +1,829 @@
+#include<iostream>
+#include<fstream>
+#include<cstring>
+#include<iomanip>
+using namespace std;
+#define cls system("cls")
+
+class time                       //收入支出的时间
+{
+private:
+	int year, month, day;
+public:
+	time(int a, int b, int c);
+	void set_year();
+	void set_month();
+	void set_day();
+	int getyear();
+	int getmonth();
+	int getday();
+	void showtime();
+	bool checkTime();
+	void set_year2(int a, int b, int c);
+};
+class money                          //收入支出的金额
+{
+private:
+	double income, output, balance;
+	bool single;//0为支出，1为收入
+public:
+	money(double i = 0, double o = 0);
+	double getincome();
+	double getoutput();
+	bool getsingle();
+	double getbalance();
+	void setmoney();
+	void setbalance(double a);
+	void showmoney();
+	void set_money(bool a, double b);
+};
+class record :public time, public money
+{
+private:
+	char information[50];           //收入支出备注
+public:
+	record* next2;
+	record(int a = 0, int b = 0, int c = 0, double i = 0, double o = 0, char *informationp = NULL);
+	~record();
+	void setrecord();
+	void showrecord();
+	char* getinformation();
+	void setinformation(char a[]);
+	void showinformation()
+	{
+		cout << setw(4) << getyear() << "." << setw(2) << getmonth() << "." << setw(2) << getday()
+			<< setw(6) << getoutput() << setw(9) << getincome() << setw(9) << getinformation() << setw(7) << "  ";
+	}
+	void showinformation2()
+	{
+		cout << setw(4) << getyear() << "." << setw(2) << getmonth() << "." << setw(2) << getday();
+		if (getsingle() == 0) cout << setw(9) << "支出" << setw(7) << getoutput();
+		else cout << setw(9) << "收入" << setw(7) << getincome();
+		cout << setw(10) << getbalance() << setw(6) << " ";
+	}
+};
+class user :public record
+{
+private:
+	char account[50];
+	char password[50];
+public:
+	user *next1;
+	void setuser();
+	char *getaccount();
+	char *getpassword();
+	void showuser();
+	void setuser(char a[], char b[]);
+};
+
+record *recordlist()           //创建信息空链表
+{
+	record *head;
+	head = (record*)malloc(sizeof(record));
+	money(0, 0);
+	head->next2 = NULL;
+	return head;
+}
+user *userlist()                   //创建用户空链表
+{
+	user *head;
+	head = (user*)malloc(sizeof(user));
+	head->next1 = NULL;
+	head->next2 = NULL;
+	return head;
+}
+
+user* operate_user = NULL;
+user *user_head = userlist();
+int power = 0; 
+
+void grounda()
+{
+	cout << endl << endl << "    ---------------------------------------------\n"
+		<< "    |*******财务管理系统——财务信息************|\n"
+		<< "    |-------------------------------------------|\n"
+		<< "    |                                           |\n"
+		<< "    |----------------*商品信息*-----------------|\n"
+		<< "    |  时间        支出     收入      备注      |\n";
+}
+void groundb()
+{
+	cout << "    |                                           |\n"
+		<< "    ---------------------------------------------\n";
+}
+void logon()
+{
+	cout << "\n\n\n\t\t\t☆★☆★☆★☆★☆★☆★☆★☆★☆\n\n";
+	cout << "\t\t\t\t 财务记录管理系统\n\n";
+	cout << "\t\t\t\t\t2017年6月3日\n\n";
+	cout << "\t\t\t☆★☆★☆★☆★☆★☆★☆★☆★☆\n\n\t\t\t";
+	system("pause");
+}
+void creatuser(user *user_head)
+{
+	if (power)
+	{
+		cls;
+		cout << "请先退出登录！\n";
+		system("pause");
+		return;
+	}
+	cls;
+	user *p = user_head;
+	cout << "\t\t------------------创建用户信息---------------------" << endl << endl;
+	user *newuser = userlist();
+	newuser->setuser();
+	if (p->next1 == NULL)
+	{
+		p->next1 = newuser;
+	}
+	else
+	{
+		while (p->next1 != NULL)
+		{
+			p = p->next1;
+		}
+		p->next1 = newuser;
+	}
+	cout << "\n\t创建新用户成功！\n";
+	system("pause");
+
+}
+void addrecord(user *operate_user)
+{
+	cls;
+	if (!power)
+	{
+		cls;
+		cout << "请先登录！\n";
+		system("pause");
+		return;
+	}
+	user *p1 = operate_user;
+	cout << "\t\t------------------输入财务信息---------------------" << endl << endl;
+	char input, *in;
+	in = &input;
+	do
+	{
+		record *newrecord = recordlist();
+		do
+		{
+			cout << "\n年份: ";
+			newrecord->set_year();
+			cout << endl << "月份: ";
+			newrecord->set_month();
+			cout << endl << "日期: ";
+			newrecord->set_day();
+		} while (!newrecord->checkTime());
+		newrecord->setmoney();
+		newrecord->setrecord();
+		if (p1->next2 == NULL)
+		{
+			p1->next2 = newrecord;
+		}
+		else
+		{
+			record *p = p1->next2;
+			while (p->next2 != NULL)
+			{
+				p = p->next2;
+			}
+			newrecord->setbalance(p->getbalance());
+			p->next2 = newrecord;
+		}
+		cout << endl << "\t是否继续输入？(Y/N)";
+		cin >> *in;
+	} while (toupper(input) != 'N');
+
+}
+void scan(user *operate_user)
+{
+	if (!power)
+	{
+		cls;
+		cout << "请先登录！\n";
+		system("pause");
+		return;
+	}
+	user *p = operate_user;
+	system("cls");
+	cout << "用户：" << p->getaccount() << endl;
+	record *p2 = p->next2;
+	cout << endl << endl << "    ---------------------------------------------\n"
+		<< "    |*******财务管理系统——财务信息************|\n"
+		<< "    |-------------------------------------------|\n"
+		<< "    |                                           |\n"
+		<< "    |----------------*商品信息*-----------------|\n"
+		<< "    |    时间       收支     金额      结余     |\n";
+	while (p2 != NULL)
+	{
+		cout << "    |";
+		p2->showinformation2();
+		cout << " |\n";
+		p2 = p2->next2;
+	}
+	groundb();
+	system("pause");
+}
+void Delete_user(user *user_head, user *operate_user)
+{
+	if (!power)
+	{
+		cls;
+		cout << "请先登录！\n";
+		system("pause");
+		return;
+	}
+	user *p = user_head;
+	while (strcmp(p->next1->getaccount(), operate_user->getaccount()) != 0)
+	{
+		p = p->next1;
+	}
+	p->next1 = operate_user->next1;
+	free(operate_user);
+	power = 0;
+	cout << " 该用户信息已删除并退出登录！\n";
+	system("pause");
+}
+void CalculateMonthInfor(user *operate_user)
+
+{
+
+	int x, y;
+	record *p;
+	p = operate_user->next2;
+	cls;
+	cout << endl << endl << "\t\t====================按月统计===============" << endl;
+	cout << "输入年份，月份：";
+	cin >> x >> y;
+	cls;
+	grounda();
+	while (p != NULL)
+	{
+		if (x == p->getyear() && y == p->getmonth())
+		{
+			cout << "    |";
+			p->showinformation();
+			cout << "  |\n";
+		}
+		p = p->next2;
+	}
+	groundb();
+}
+void CalculateYearInfor(user *operate_user)
+{
+	int x;
+	record *p;
+	p = operate_user->next2;
+	cls;
+	cout << endl << endl << "\t\t====================按年统计===============" << endl;
+	cout << "输入年份:" << endl;
+	cin >> x;
+	cls;
+	grounda();
+	while (p != NULL)
+	{
+		if (x == p->getyear())
+		{
+			cout << "    |";
+			p->showinformation();
+			cout << "  |\n";
+		}
+		p = p->next2;
+	}
+	groundb();
+}
+void CalculateDayInfor(user *operate_user)
+
+{
+	int x, y, z;
+	record *p;
+	p = operate_user->next2;
+	cls;
+	cout << endl << endl << "\t\t====================按日统计===============" << endl;
+	cout << "输入年份,月份，日期！" << endl;
+	cin >> x >> y >> z;
+	cls;
+	grounda();
+	while (p != NULL)
+	{
+		if (x == p->getyear() && y == p->getmonth() && z == p->getday())
+		{
+			cout << "    |";
+			p->showinformation();
+			cout << "  |\n";
+		}
+		p = p->next2;
+	}
+	groundb();
+}
+void CalculateInfor(user *operate_user)
+
+{
+
+	if (!power)
+	{
+		cls;
+		cout << "请先登录！\n";
+		system("pause");
+		return;
+	}
+
+	user *p;
+
+	p = operate_user;
+
+	int Ch;
+
+	system("cls");
+
+	cout << endl << "**********财务统计**********" << endl << endl;
+	cout << "=========1.收支查询=========" << endl << endl;
+
+	cout << "=========2.按年统计=========" << endl << endl;
+
+	cout << "=========3.按月统计=========" << endl << endl;
+
+	cout << "=========4.按日统计=========" << endl << endl;
+
+	cout << "=========5.返回上层=========" << endl << endl;
+
+	cout << "****************************" << endl << endl;
+
+	cout << "Option:";
+
+	cin >> Ch;
+
+	switch (Ch)
+
+	{
+	case 1:
+
+		scan(p);
+
+		break;
+
+	case 2:
+
+		CalculateYearInfor(p);
+
+		system("pause");
+
+		break;
+
+	case 3:
+
+		CalculateMonthInfor(p);
+
+		system("pause");
+
+		break;
+
+	case 4:
+
+		CalculateDayInfor(p);
+
+		system("pause");
+
+		break;
+
+	case 5:
+
+		system("cls");
+
+		return;
+
+	default:
+
+		break;
+
+	}
+
+}
+void login(user* user_head)
+{
+
+	if (power)
+	{
+		cout << "用户已登录！\n";
+		system("pause");
+		return;
+	}
+	user *p = user_head->next1;
+	if (p == NULL)
+	{
+		cout << "无用户数据！\n";
+		system("pause");
+		return;
+	}
+	int judge = 0;
+	char input_account[50], input_password[50];
+	cout << "请输入账户ID(输入0则返回菜单)：";
+	cin >> input_account;
+	while (strcmp(input_account, "0") != 0)  //如果没输入0，则循环
+	{
+		while (p != NULL)
+		{
+			if (strcmp(input_account, p->getaccount()) == 0)
+			{
+				cout << "请输入账户密码：";
+				cin >> input_password;
+				if (strcmp(input_password, p->getpassword()) == 0)
+				{
+					operate_user = p;
+					power = 1;
+					judge = 1;
+					cout << "登录成功！（按任意键返回主菜单）";
+					system("pause");
+					break;
+				}
+				else
+				{
+					while (strcmp(input_password, p->getpassword()) != 0)
+					{
+						cout << "密码错误，请重新输入密码:";
+						cin >> input_password;
+					}
+					operate_user = p;
+					power = 1;
+					judge = 1;
+					cout << "登录成功！（按任意键返回主菜单）";
+					system("pause");
+					break;
+				}
+			}
+			else
+			{
+				p = p->next1;
+			}
+		}
+		if (judge == 0)
+		{
+			cout << "该账户不存在，请重新输入(输入0返回主菜单)";
+			cin >> input_account;
+		}
+		else break;
+	}
+}
+void logoff()
+{
+	if (!power)
+	{
+		cout << "尚未登录！\n";
+		system("pause");
+		return;
+	}
+	operate_user = NULL;
+	power = 0;
+	cout << "账户完成注销！\n";
+	system("pause");
+}
+user* read()
+{
+	fstream in;
+	char accountp[50], passwordp[50];
+	in.open("date.txt", ios::in);
+	if (!in)
+	{
+		cout << "Can not open date.txt" << endl;
+		exit(1);
+	}
+	user *p, *p1 = NULL, *head = NULL;
+	while (in >> accountp)
+	{
+		in >> passwordp;
+		p = new user;
+		p->next1 = NULL; p->next2 = NULL;
+		p->setuser(accountp, passwordp);
+		if (head == NULL) head = p1 = p;
+		else
+		{
+			p1->next1 = p;
+			p1 = p;
+		}
+		char singlep = '#';
+		do
+		{
+			record *newrecord = recordlist();
+			int a, b, c;
+			in >> a >> b >> c;
+			newrecord->set_year2(a, b, c);
+			bool d; int e;
+			in >> d >> e;
+			newrecord->set_money(d, e);
+			char mid[50];
+			in >> mid;
+			newrecord->setinformation(mid);
+			if (p->next2 == NULL)
+			{
+				p->next2 = newrecord;
+			}
+			else
+			{
+				record *q = p1->next2;
+				while (p->next2 != NULL)
+				{
+					q = q->next2;
+				}
+				newrecord->setbalance(q->getbalance());
+				q->next2 = newrecord;
+			}
+			in >> singlep;
+		} while (singlep != '@');
+	}
+	in.close();
+	cout << "导入数据完成";
+	system("pause");
+	return head;
+}
+void write(user* head)
+{
+	fstream out;
+	out.open("date.txt", ios::out);
+	if (!out)
+	{
+		cout << "Can not open date.txt" << endl;
+		exit(1);
+	}
+	record* p = NULL;
+	user* q = head->next1;
+	while (q != NULL)
+	{
+		out << q->getaccount() << endl;
+		out << q->getpassword() << endl;
+		p = q->next2;
+		while (p != NULL)
+		{
+			out << p->getyear() << " ";
+			out << p->getmonth() << " ";
+			out << p->getday() << " ";
+			out << p->getsingle() << " ";
+			if (p->getsingle() == 0) out << p->getoutput() << " ";
+			else out << p->getincome() << " ";
+			out << p->getinformation() << " ";
+			p = p->next2;
+			if (p == NULL)
+			{
+				out << "@" << endl;
+			}
+			else
+			{
+				out << "#" << endl;
+			}
+		}
+		q = q->next1;
+	}
+	out.close();
+}
+int menu_select()         //菜单选择系统函数  
+{
+	char c;
+	do{
+		system("cls");
+		cout << "\n\n\t\t    ╭════════■□■□═════╮\n";
+		cout << "\t\t    │              系统主页            │\n";
+		cout << "\t\t    ╰═════■□■□════════╯\n";
+		cout << "\t\t   ┌──────────────────┐\n";
+		cout << "\t\t   │ 1. 创建用户        2. 收支录入     │\n";
+		cout << "\t\t   │                                    │\n";
+		cout << "\t\t   │ 3. 用户数据删除    4. 用户登录     │\n";
+		cout << "\t\t   │                                    │\n";
+		cout << "\t\t   │ 5. 注销账户        6. 财务统计     │\n";
+		cout << "\t\t   │                                    │\n";
+		cout << "\t\t   │ 7. 退出                            │\n";
+		cout << "\t\t   └──────────────────┘\n";
+		cout << "\t\t    请您选择(1-7):";
+		c = getchar();
+	} while (c != '1'&&c != '2'&&c != '3'&&c != '4'&& c != '5'&&c != '6'&&c != '7'&&c != '8');
+	return (c - '0');
+}
+int main()
+{
+	system("color 0C");
+	logon();
+	user_head->next1 = read();
+	while (1)
+	{
+		switch (menu_select())
+		{
+		case 1:creatuser(user_head); break;
+		case 2:addrecord(operate_user); break;
+		case 3: Delete_user(user_head, operate_user); break;
+		case 4:login(user_head); break;
+		case 5:logoff(); break;
+		case 6:CalculateInfor(operate_user); break;
+		case 7:
+			write(user_head);
+			printf("\n\t\t谢谢使用，再见!\n");
+			printf("\n\t\t");
+			system("pause");
+			exit(0);
+		}
+	}
+	return 0;
+}
+
+
+//                    时 间 类 
+time::time(int a, int b, int c)
+{
+	year = a;
+	month = b;
+	day = c;
+}
+void time::set_year()
+{
+	int a;
+	cin >> a;
+	year = a;
+}
+void time::set_month()
+{
+	int a;
+	cin >> a;
+	month = a;
+}
+void time::set_day()
+{
+	int a;
+	cin >> a;
+	day = a;
+}
+int time::getyear()
+{
+	return year;
+}
+int time::getmonth()
+{
+	return  month;
+}
+int time::getday()
+{
+	return  day;
+}
+void time::showtime()
+{
+	cout << year << "年" << month << "月" << day << "日";
+}
+bool time::checkTime() //时间错误检查
+{
+	if (month>12 || month<1)
+	{
+		cout << "\n\t月份输入错误!\n";
+		system("pause");
+		return 0;
+	}
+	else
+	{
+		if (month == 1 || month == 3 || month == 5 || month == 7 || month == 8 || month == 10 || month == 12)
+		{
+			if (day>31 || day<1)
+			{
+				cout << "\n\t日期输入错误!\n";
+				system("pause");
+				return 0;
+			}
+		}
+		else
+		{
+			if (month == 4 || month == 6 || month == 9 || month == 11)
+				if (day<1 || day>30)
+				{
+				cout << "\n\t日期输入错误!\n";
+				system("pause");
+				return 0;
+				}
+		}
+	}
+	if (month == 2)
+		if (day>29 || day<1)
+		{
+		cout << "\n\t日期输入错误!\n";
+		system("pause");
+		return 0;
+		}
+	return 1;
+}
+void time::set_year2(int a, int b, int c)
+{
+	year = a;
+	month = b;
+	day = c;
+}
+
+//                  钱 类 函 数
+money::money(double i, double o)
+{
+	income = i;
+	output = o;
+	balance = 0;
+}
+void money::setmoney()
+{
+	cout << "\n请输入0表示支出，1表示收入：";
+	cin >> single;
+	if (single)
+	{
+		cout << "\n请输入收入金额：";
+		cin >> income;
+		output = 0;
+	}
+	else
+	{
+		cout << "\n请输入支出金额：";
+		cin >> output;
+		income = 0;
+	}
+	balance = income - output;
+}
+double money::getincome()
+{
+	return income;
+}
+double money::getoutput()
+{
+	return output;
+}
+double money::getbalance()
+{
+	return balance;
+}
+bool money::getsingle()
+{
+	return single;
+}
+void money::showmoney()
+{
+	cout << "收入：" << income;
+	cout << "支出：" << output;
+	cout << "结余：" << balance;
+}
+void money::setbalance(double a)
+{
+	balance = balance + a;
+}
+void money::set_money(bool a, double b)
+{
+	single = a;
+	if (a == 0)
+	{
+		output = b;
+		income = 0;
+	}
+	else
+	{
+		income = b;
+		output = 0;
+	}
+	balance = income - output;
+}
+
+//                  record 类函 数
+record::record(int a, int b, int c, double i, double o, char *informationp) :time(a, b, c), money(i, o)
+{
+
+}
+void record::setrecord()
+{
+	cout << "\n请输入备注信息：";
+	cin >> information;
+}
+void record::setinformation(char a[])
+{
+	strcpy_s(information, a);
+}
+char* record::getinformation()
+{
+	return information;
+}
+void record::showrecord()
+{
+	cout << information;
+}
+
+
+//                     账 户 类 函 数
+void user::setuser()
+{
+	cout << "请输入用户名:";
+	cin >> account;
+	cout << "请输入密码:";
+	cin >> password;
+}
+void user::showuser()
+{
+	cout << account;
+}
+char *user::getaccount()
+{
+	return account;
+}
+char *user::getpassword()
+{
+	return password;
+}
+void user::setuser(char a[], char b[])
+{
+	strcpy_s(account, a);
+	strcpy_s(password, b);
+}
